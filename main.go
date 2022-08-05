@@ -27,6 +27,7 @@ import (
 	"strings"
 	"time"
 
+	"example.com/handlers"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -49,6 +50,7 @@ var ctx context.Context
 var err error
 var client *mongo.Client
 var collection *mongo.Collection
+var recipesHandler *handlers.RecipesHandler
 
 func init() {
 
@@ -61,6 +63,7 @@ func init() {
 	}
 	log.Println("Connected to MongoDB")
 	collection = client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
+	recipesHandler = handlers.NewRecipesHandler(ctx, collection)
 }
 
 func NewRecipeHandler(c *gin.Context) {
@@ -164,7 +167,7 @@ func SearchRecipesHandler(c *gin.Context) {
 func main() {
 	router := gin.Default()
 	router.POST("/recipes", NewRecipeHandler)
-	router.GET("/recipes", ListRecipesHandler)
+	router.GET("/recipes", recipesHandler.ListRecipesHandler)
 	router.PUT("/recipes/:id", UpdateRecipeHandler)
 	router.DELETE("/recipes/:id", DeleteRecipeHandler)
 	router.GET("/recipes/search", SearchRecipesHandler)
